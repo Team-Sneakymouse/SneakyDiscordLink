@@ -1,5 +1,6 @@
 plugins {
 	kotlin("jvm") version "2.0.20"
+	kotlin("plugin.serialization") version "2.0.20"
 }
 
 repositories {
@@ -24,12 +25,14 @@ dependencies {
     // compileOnly("us.dynmap:DynmapCoreAPI:3.4")
     // implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // implementation("org.json:json:20240303")
+	implementation("io.github.agrevster:pocketbase-kotlin:2.6.3")
 }
 
 tasks.jar {
 	manifest {
-		attributes["Main-Class"] = "com.danidipp.paperplugin.PaperPlugin"
+		attributes["Main-Class"] = "com.danidipp.sneakydiscordlink.SneakyDiscordLink"
 	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
 	from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }
