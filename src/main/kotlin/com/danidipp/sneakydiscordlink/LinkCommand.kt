@@ -30,7 +30,7 @@ class LinkCommand : Command("link") {
                             .color(NamedTextColor.AQUA)
                             .decorate(TextDecoration.UNDERLINED)
                             .hoverEvent(Component.text("Click to copy", NamedTextColor.GRAY))
-                            .clickEvent(ClickEvent.copyToClipboard("/link $result"))
+                            .clickEvent(ClickEvent.copyToClipboard("/link token:$result"))
                     ))
                 } else {
                     sender.sendMessage(Component.text(result, NamedTextColor.RED))

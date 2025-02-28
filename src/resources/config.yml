@@ -1,5 +1,0 @@
-pocketbase:
-  protocol: "https"
-  host: ""
-  user: ""
-  password: ""
