@@ -4,6 +4,7 @@ package com.danidipp.sneakydiscordlink
 
 import com.danidipp.sneakypocketbase.BaseRecord
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 data class UserRecord(
@@ -12,10 +13,11 @@ data class UserRecord(
 
 @Serializable
 data class AccountRecord(
+    @Transient override val recordId: String? = null,
     var name: String,
-    val uuid: String,
     var owner: String,
-    var main: Boolean) : BaseRecord()
+    var main: Boolean
+) : BaseRecord(recordId)
 
 @Serializable
 data class LinkRecord(

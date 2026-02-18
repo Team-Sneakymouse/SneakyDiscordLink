@@ -12,7 +12,7 @@ import org.bukkit.entity.Player
 class LinkCommand : Command("link") {
     init {
         description = "Link your Discord account"
-        usageMessage = "/link [code]"
+        usageMessage = "/link [token]"
 //        permission = "sneakydiscordlink.link"
     }
 

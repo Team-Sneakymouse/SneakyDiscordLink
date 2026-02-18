@@ -26,30 +26,21 @@ class LinkManager {
                 inFlight.add(uuid)
                 val callbackParams: Pair<Status, String> = run {
                     // Check if the Minecraft account is already linked
-                    val accountResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getFullList<AccountRecord>(
-                            "lom2_accounts",
-                            1,
-                            SortFields(),
-                            Filter("uuid=\"$uuid\"")
-                        )
+                    var accountRecord = runCatching {
+                        SneakyPocketbase.getInstance().pb().records.getOne<AccountRecord>("lom2_accounts",uuid.toString())
                     }.getOrNull()
-                    if (accountResult == null) // PB error
-                        return@run Pair(Status.ERROR, "Failed to check account status. Please tell Dani.")
-
-                    var accountRecord = accountResult.firstOrNull()
                     if (accountRecord == null) { // Account does not exist
                         accountRecord = runCatching {
                             SneakyPocketbase.getInstance().pb().records.create<AccountRecord>(
                                 "lom2_accounts",
                                 Json.encodeToString(AccountRecord.serializer(), AccountRecord(
+                                    recordId = uuid.toString(),
                                     name = Bukkit.getOfflinePlayer(uuid).name?: "",
-                                    uuid = uuid.toString(),
                                     owner = "",
                                     main = false
                                 ))
                             )
-                        }.getOrNull()
+                        }.onFailure { it.printStackTrace() }.getOrNull()
                         if (accountRecord == null) // PB error
                             return@run Pair(Status.ERROR, "Failed to create account. Please tell Dani.")
                     }
@@ -66,7 +57,7 @@ class LinkManager {
                             SortFields(),
                             Filter("account=\"${accountRecord.id}\"")
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (findTokenResult == null) // PB error
                         return@run Pair(Status.ERROR, "Failed to check link token. Please tell Dani.")
 
@@ -87,7 +78,7 @@ class LinkManager {
                                 SortFields(),
                                 Filter("link_token=\"$testToken\"")
                             )
-                        }.getOrNull()
+                        }.onFailure { it.printStackTrace() }.getOrNull()
                         if (checkTokenResult == null) // PB error
                             return@run Pair(Status.ERROR, "Failed to check link token. Please tell Dani.")
 
@@ -109,7 +100,7 @@ class LinkManager {
                                 link_token = token
                             ))
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (updateResult == null) // PB error
                         return@run Pair(Status.ERROR, "Failed to save link token. Please tell Dani.")
 
@@ -134,30 +125,21 @@ class LinkManager {
 
                 val callbackParams: Pair<Status, String> = run {
                     // Check if the Minecraft account is already linked
-                    val accountResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getFullList<AccountRecord>(
-                            "lom2_accounts",
-                            1,
-                            SortFields(),
-                            Filter("uuid=\"$uuid\"")
-                        )
-                    }.getOrNull()
-                    if (accountResult == null) // PB error
-                        return@run Pair(Status.ERROR, "Failed to check account status. Please tell Dani.")
-
-                    var accountRecord = accountResult.firstOrNull()
+                    var accountRecord = runCatching {
+                        SneakyPocketbase.getInstance().pb().records.getOne<AccountRecord>("lom2_accounts", uuid.toString())
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (accountRecord == null) { // Account does not exist
                         accountRecord = runCatching {
                             SneakyPocketbase.getInstance().pb().records.create<AccountRecord>(
                                 "lom2_accounts",
                                 Json.encodeToString(AccountRecord.serializer(), AccountRecord(
+                                    recordId = uuid.toString(),
                                     name = Bukkit.getOfflinePlayer(uuid).name?: "",
-                                    uuid = uuid.toString(),
                                     owner = "",
                                     main = false
                                 ))
                             )
-                        }.getOrNull()
+                        }.onFailure { it.printStackTrace() }.getOrNull()
                         if (accountRecord == null) // PB error
                             return@run Pair(Status.ERROR, "Failed to create account. Please tell Dani.")
                     }
@@ -174,7 +156,7 @@ class LinkManager {
                             SortFields(),
                             Filter("link_token=\"$token\"")
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (tokenResponse == null) // PB error
                         return@run Pair(Status.ERROR, "Failed to check link token. Please tell Dani.")
 
@@ -197,7 +179,7 @@ class LinkManager {
                             SortFields(),
                             Filter("owner=\"${tokenRecord.user}\"")
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (otherAccountResult == null) // PB error
                         return@run Pair(Status.ERROR, "Failed to check other accounts. Please tell Dani.")
                     val otherMain = otherAccountResult.any { it.main }
@@ -212,7 +194,7 @@ class LinkManager {
                             accountRecord.id!!,
                             Json.encodeToString(AccountRecord.serializer(), accountRecord)
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (updateResult == null)
                         return@run Pair(Status.ERROR, "Failed to link account. Please tell Dani.")
 
@@ -222,7 +204,7 @@ class LinkManager {
                             "minecraft_link",
                             tokenRecord.id!!
                         )
-                    }.getOrNull()
+                    }.onFailure { it.printStackTrace() }.getOrNull()
                     if (deleteResult == null)
                         return@run Pair(Status.ERROR, "Failed to clean up. Please tell Dani.")
 
