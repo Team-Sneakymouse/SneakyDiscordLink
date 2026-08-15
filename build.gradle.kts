@@ -1,6 +1,6 @@
 plugins {
-	kotlin("jvm") version "2.1.0"
-	kotlin("plugin.serialization") version "2.1.0"
+	kotlin("jvm") version "2.2.21"
+	kotlin("plugin.serialization") version "2.2.21"
 }
 
 repositories {
@@ -15,14 +15,15 @@ repositories {
 }
 
 dependencies {
-	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.21")
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 	// compileOnly("me.clip:placeholderapi:2.11.5")
     // compileOnly("us.dynmap:dynmap-api:3.4-beta-3")
     // compileOnly("us.dynmap:DynmapCoreAPI:3.4")
     // implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // implementation("org.json:json:20240303")
-	compileOnly(files("C:\\Users\\DaniDipp\\Downloads\\1.21.4\\SneakyPocketbase-1.0.jar"))
+	compileOnly(files("../SneakyPocketbase/build/libs/SneakyPocketbase-1.0-api.jar"))
 }
 
 tasks.jar {
@@ -41,4 +42,24 @@ configure<JavaPluginExtension> {
 			resources.srcDir(file("src/resources"))
 		}
 	}
+}
+val verifyPrivateKotlinRuntime by tasks.registering {
+	dependsOn(tasks.jar)
+	doLast {
+		val jarFile = tasks.jar.get().archiveFile.get().asFile
+		val entries = zipTree(jarFile)
+		val required = listOf(
+			"kotlin/jvm/functions/Function1.class",
+			"kotlinx/serialization/json/JsonKt.class"
+		)
+		required.forEach { path ->
+			check(!entries.matching { include(path) }.isEmpty) {
+				"$path must be bundled in ${jarFile.name} to keep Kotlin private to this plugin's classloader"
+			}
+		}
+	}
+}
+
+tasks.check {
+	dependsOn(verifyPrivateKotlinRuntime)
 }

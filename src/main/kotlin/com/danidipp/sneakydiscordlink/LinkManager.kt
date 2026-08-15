@@ -1,9 +1,5 @@
 package com.danidipp.sneakydiscordlink
 
-import com.danidipp.sneakypocketbase.PBRunnable
-import com.danidipp.sneakypocketbase.SneakyPocketbase
-import io.github.agrevster.pocketbaseKotlin.dsl.query.Filter
-import io.github.agrevster.pocketbaseKotlin.dsl.query.SortFields
 import kotlinx.serialization.json.Json
 import org.bukkit.Bukkit
 import java.util.UUID
@@ -18,23 +14,23 @@ class LinkManager {
         private val inFlight = mutableSetOf<UUID>()
 
         fun createToken(uuid: UUID, callback: (Status, String) -> Unit) {
-            Bukkit.getScheduler().runTaskAsynchronously(SneakyDiscordLink.getInstance(), PBRunnable {
+            Bukkit.getScheduler().runTaskAsynchronously(SneakyDiscordLink.getInstance(), Runnable {
                 if (inFlight.contains(uuid)) {
                     callback(Status.ERROR, "Linking is already in progress")
-                    return@PBRunnable
+                    return@Runnable
                 }
                 inFlight.add(uuid)
                 val callbackParams: Pair<Status, String> = run {
                     // Check if the Minecraft account is already linked
                     var accountRecord = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getOne<AccountRecord>("lom2_accounts",uuid.toString())
+                        PocketbaseRecords.getOne<AccountRecord>("lom2_accounts",uuid.toString())
                     }.getOrNull()
                     if (accountRecord == null) { // Account does not exist
                         accountRecord = runCatching {
-                            SneakyPocketbase.getInstance().pb().records.create<AccountRecord>(
+                            PocketbaseRecords.create<AccountRecord>(
                                 "lom2_accounts",
-                                Json.encodeToString(AccountRecord.serializer(), AccountRecord(
-                                    recordId = uuid.toString(),
+                                PocketbaseRecords.encodeCreate(AccountRecord(
+                                    id = uuid.toString(),
                                     name = Bukkit.getOfflinePlayer(uuid).name?: "",
                                     owner = "",
                                     main = false
@@ -51,11 +47,10 @@ class LinkManager {
 
                     // Check if a token has already been issued
                     val findTokenResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getFullList<LinkRecord>(
+                        PocketbaseRecords.getFullList<LinkRecord>(
                             "minecraft_link",
                             1,
-                            SortFields(),
-                            Filter("account=\"${accountRecord.id}\"")
+                            "account=\"${accountRecord.id}\""
                         )
                     }.onFailure { it.printStackTrace() }.getOrNull()
                     if (findTokenResult == null) // PB error
@@ -72,11 +67,10 @@ class LinkManager {
                         val testToken = (10000..99999).random().toString()
                         // Check for token collision
                         val checkTokenResult = runCatching {
-                            SneakyPocketbase.getInstance().pb().records.getFullList<LinkRecord>(
+                            PocketbaseRecords.getFullList<LinkRecord>(
                                 "minecraft_link",
                                 1,
-                                SortFields(),
-                                Filter("link_token=\"$testToken\"")
+                                "link_token=\"$testToken\""
                             )
                         }.onFailure { it.printStackTrace() }.getOrNull()
                         if (checkTokenResult == null) // PB error
@@ -92,9 +86,9 @@ class LinkManager {
 
                     // Save the new link token to the database
                     val updateResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.create<LinkRecord>(
+                        PocketbaseRecords.create<LinkRecord>(
                             "minecraft_link",
-                            Json.encodeToString(LinkRecord.serializer(), LinkRecord(
+                            PocketbaseRecords.encodeCreate(LinkRecord(
                                 user = "",
                                 account = accountRecord.id!!,
                                 link_token = token
@@ -119,21 +113,21 @@ class LinkManager {
             if (token.length != 5)
                 return callback(Status.ERROR, "Invalid link token")
 
-            Bukkit.getScheduler().runTaskAsynchronously(SneakyDiscordLink.getInstance(), PBRunnable {
-                if (inFlight.contains(uuid)) return@PBRunnable
+            Bukkit.getScheduler().runTaskAsynchronously(SneakyDiscordLink.getInstance(), Runnable {
+                if (inFlight.contains(uuid)) return@Runnable
                 inFlight.add(uuid)
 
                 val callbackParams: Pair<Status, String> = run {
                     // Check if the Minecraft account is already linked
                     var accountRecord = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getOne<AccountRecord>("lom2_accounts", uuid.toString())
+                        PocketbaseRecords.getOne<AccountRecord>("lom2_accounts", uuid.toString())
                     }.onFailure { it.printStackTrace() }.getOrNull()
                     if (accountRecord == null) { // Account does not exist
                         accountRecord = runCatching {
-                            SneakyPocketbase.getInstance().pb().records.create<AccountRecord>(
+                            PocketbaseRecords.create<AccountRecord>(
                                 "lom2_accounts",
-                                Json.encodeToString(AccountRecord.serializer(), AccountRecord(
-                                    recordId = uuid.toString(),
+                                PocketbaseRecords.encodeCreate(AccountRecord(
+                                    id = uuid.toString(),
                                     name = Bukkit.getOfflinePlayer(uuid).name?: "",
                                     owner = "",
                                     main = false
@@ -150,11 +144,10 @@ class LinkManager {
 
                     // Check if the link token exists in the database
                     val tokenResponse = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getFullList<LinkRecord>(
+                        PocketbaseRecords.getFullList<LinkRecord>(
                             "minecraft_link",
                             1,
-                            SortFields(),
-                            Filter("link_token=\"$token\"")
+                            "link_token=\"$token\""
                         )
                     }.onFailure { it.printStackTrace() }.getOrNull()
                     if (tokenResponse == null) // PB error
@@ -173,11 +166,10 @@ class LinkManager {
 
                     // Check if there are other accounts linked to the Discord account
                     val otherAccountResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.getFullList<AccountRecord>(
+                        PocketbaseRecords.getFullList<AccountRecord>(
                             "lom2_accounts",
                             100,
-                            SortFields(),
-                            Filter("owner=\"${tokenRecord.user}\"")
+                            "owner=\"${tokenRecord.user}\""
                         )
                     }.onFailure { it.printStackTrace() }.getOrNull()
                     if (otherAccountResult == null) // PB error
@@ -189,10 +181,10 @@ class LinkManager {
                     accountRecord.owner = tokenRecord.user
                     accountRecord.main = !otherMain
                     val updateResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.update<AccountRecord>(
+                        PocketbaseRecords.update<AccountRecord>(
                             "lom2_accounts",
                             accountRecord.id!!,
-                            Json.encodeToString(AccountRecord.serializer(), accountRecord)
+                            PocketbaseRecords.encodeUpdate(accountRecord)
                         )
                     }.onFailure { it.printStackTrace() }.getOrNull()
                     if (updateResult == null)
@@ -200,7 +192,7 @@ class LinkManager {
 
                     // Delete the link token
                     val deleteResult = runCatching {
-                        SneakyPocketbase.getInstance().pb().records.delete(
+                        PocketbaseRecords.delete(
                             "minecraft_link",
                             tokenRecord.id!!
                         )

@@ -1,7 +1,5 @@
 package com.danidipp.sneakydiscordlink
 
-import io.github.agrevster.pocketbaseKotlin.PocketbaseClient
-import kotlinx.coroutines.*
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
