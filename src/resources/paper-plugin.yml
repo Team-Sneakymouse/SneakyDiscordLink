@@ -1,5 +1,5 @@
 name: SneakyDiscordLink
-version: "1.0"
+version: "${version}"
 main: com.danidipp.sneakydiscordlink.SneakyDiscordLink
 api-version: "1.20"
 authors:
