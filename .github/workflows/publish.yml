@@ -19,14 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build SneakyPocketbase API (compileOnly sibling)
-        run: |
-          git clone --depth 1 https://github.com/Team-Sneakymouse/SneakyPocketbase.git ../SneakyPocketbase
-          chmod +x ../SneakyPocketbase/gradlew
-          ../SneakyPocketbase/gradlew -p ../SneakyPocketbase apiJar --no-daemon --console=plain
-          api_jar="$(ls ../SneakyPocketbase/build/libs/*-api.jar | head -1)"
-          cp "$api_jar" ../SneakyPocketbase/build/libs/SneakyPocketbase-1.0-api.jar
-
       - name: Set up Java 25
         uses: actions/setup-java@v5
         with:

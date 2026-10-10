@@ -31,13 +31,14 @@ repositories {
 		url = uri("https://repo.papermc.io/repository/maven-public/")
 	}
 	mavenCentral()
+	maven("https://maven.sneakyrp.com/releases")
 }
 
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.21")
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 	compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
-	compileOnly(files("../SneakyPocketbase/build/libs/SneakyPocketbase-1.0-api.jar"))
+	compileOnly("io.github.team-sneakymouse:sneakypocketbase-api:2026.10.09-70effb404392")
 }
 
 sourceSets {
