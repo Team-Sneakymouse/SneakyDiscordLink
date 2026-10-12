@@ -108,6 +108,7 @@ publishing {
 				name.set("SneakyDiscordLink")
 				description.set("Paper plugin for linking Minecraft and Discord accounts")
 				url.set("https://github.com/Team-Sneakymouse/SneakyDiscordLink")
+				properties.put("sneakyrp.deployment.type", "paper-plugin")
 				scm {
 					url.set("https://github.com/Team-Sneakymouse/SneakyDiscordLink")
 					connection.set("scm:git:https://github.com/Team-Sneakymouse/SneakyDiscordLink.git")
